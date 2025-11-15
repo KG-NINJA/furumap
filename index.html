@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>古地名 → 現代地名 照合AI | KG-NINJA</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+  #map { width: 100%; height: 90vh; }
+</style>
+</head>
+
+<body>
+
+<h2>古地名 → 現代地名 照合AI #KGNINJA</h2>
+
+地名：<input id="oldname" type="text" value="下ノ村">
+<br><br>
+<button onclick="match()">照合</button>
+
+<div id="result"></div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+
+
+// HuggingFace API endpoint
+const API = "https://YOUR-HF-SPACE.hf.space/match";
+
+let map = L.map("map").setView([35.0, 135.0], 10);
+
+// 古地図レイヤー（GSI）
+L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/sekishizu/{z}/{x}/{y}.png", {
+    attribution: "GSI"
+}).addTo(map);
+
+
+function match() {
+    const oldname = document.getElementById("oldname").value;
+
+    fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            old_name: oldname,
+            lat: 35.0,
+            lng: 135.0
+        })
+    })
+    .then(r => r.json())
+    .then(j => {
+        document.getElementById("result").innerText =
+            JSON.stringify(j, null, 2);
+
+        // プロット
+        L.marker([j.lat, j.lng]).addTo(map)
+           .bindPopup(j.old_name + " → " + j.gpt_match);
+    });
+}
+
+</script>
+</body>
+</html>
